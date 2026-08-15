@@ -22,7 +22,7 @@ public class RefreshToken {
     private Long id;
 
     @Column(nullable = false, unique = true, length = 512)
-    private String token;
+    private String token; // UUID random
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
