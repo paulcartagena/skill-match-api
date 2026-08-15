@@ -1,0 +1,29 @@
+spring:
+  application:
+    name: skill-match-api
+
+jwt:
+  secret: ${JWT_SECRET}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: ${LOCAL_DB_URL}
+    username: ${LOCAL_DB_USERNAME}
+    password: ${LOCAL_DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
