@@ -33,7 +33,7 @@ public class JwtService {
                 .claims(Map.of(
                         "role", user.getRole().name()
                 ))
-                .subject(user.getUsername()) // User entity (email)
+                .subject(user.getUsername())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(accessTokenExpirationMinutes, ChronoUnit.MINUTES)))
                 .signWith(getSigningKey())
@@ -45,7 +45,6 @@ public class JwtService {
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        // Subject in token = user loaded for authentication ?
         return getUsername(token).equals(userDetails.getUsername())
                 && !isTokenExpired(token);
     }

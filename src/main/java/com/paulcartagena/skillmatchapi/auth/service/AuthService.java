@@ -3,9 +3,11 @@ package com.paulcartagena.skillmatchapi.auth.service;
 import com.paulcartagena.skillmatchapi.auth.dto.AuthResponse;
 import com.paulcartagena.skillmatchapi.auth.dto.LoginRequest;
 import com.paulcartagena.skillmatchapi.auth.dto.RegisterRequest;
+import com.paulcartagena.skillmatchapi.auth.entity.RefreshToken;
 import com.paulcartagena.skillmatchapi.auth.entity.User;
 import com.paulcartagena.skillmatchapi.auth.enums.UserRole;
 import com.paulcartagena.skillmatchapi.auth.repository.UserRepository;
+import com.paulcartagena.skillmatchapi.exception.ApiException;
 import com.paulcartagena.skillmatchapi.security.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -18,21 +20,24 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final RefreshTokenService refreshTokenService;
     private final AuthenticationManager authenticationManager;
 
     public AuthService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        JwtService jwtService,
+                       RefreshTokenService refreshTokenService,
                        AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.refreshTokenService = refreshTokenService;
         this.authenticationManager = authenticationManager;
     }
 
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("Email already exists.");
+            throw ApiException.conflict("Email already exists.");
         }
 
         User user = new User();
@@ -42,8 +47,10 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
-        String token = jwtService.generateAccessToken(savedUser);
-        return new AuthResponse(token);
+        String accessToken = jwtService.generateAccessToken(savedUser);
+        String refreshToken = refreshTokenService.createRefreshToken(savedUser).getToken();
+
+        return new AuthResponse(accessToken, refreshToken);
     }
 
     public AuthResponse login(LoginRequest request) {
@@ -55,9 +62,21 @@ public class AuthService {
         );
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("Invalid credentials."));
+                .orElseThrow(() -> ApiException.unauthorized("Invalid credentials."));
 
-        String token = jwtService.generateAccessToken(user);
-        return new AuthResponse(token);
+        String accessToken = jwtService.generateAccessToken(user);
+        String refreshToken = refreshTokenService.createRefreshToken(user).getToken();
+
+        return new AuthResponse(accessToken, refreshToken);
+    }
+
+    public AuthResponse refresh(String requestRefreshToken) {
+        RefreshToken storedToken = refreshTokenService.verifyAndGet(requestRefreshToken);
+        User user = storedToken.getUser();
+
+        String newRefreshToken = refreshTokenService.createRefreshToken(user).getToken();
+        String newAcessToken = jwtService.generateAccessToken(user);
+
+        return new AuthResponse(newAcessToken, newRefreshToken);
     }
 }

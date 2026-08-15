@@ -2,6 +2,7 @@ package com.paulcartagena.skillmatchapi.auth.controller;
 
 import com.paulcartagena.skillmatchapi.auth.dto.AuthResponse;
 import com.paulcartagena.skillmatchapi.auth.dto.LoginRequest;
+import com.paulcartagena.skillmatchapi.auth.dto.RefreshTokenRequest;
 import com.paulcartagena.skillmatchapi.auth.dto.RegisterRequest;
 import com.paulcartagena.skillmatchapi.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,5 +31,10 @@ public class AuthController {
     @PostMapping("/login")
     public AuthResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
+    }
+
+    @PostMapping("/refresh")
+    public AuthResponse refresh(@Valid @RequestBody RefreshTokenRequest request) {
+        return authService.refresh(request.getRefreshToken());
     }
 }

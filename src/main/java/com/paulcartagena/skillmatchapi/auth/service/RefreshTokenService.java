@@ -3,6 +3,7 @@ package com.paulcartagena.skillmatchapi.auth.service;
 import com.paulcartagena.skillmatchapi.auth.entity.RefreshToken;
 import com.paulcartagena.skillmatchapi.auth.entity.User;
 import com.paulcartagena.skillmatchapi.auth.repository.RefreshTokenRepository;
+import com.paulcartagena.skillmatchapi.exception.ApiException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,10 +39,10 @@ public class RefreshTokenService {
 
     public RefreshToken verifyAndGet(String token) {
         RefreshToken refreshToken = refreshTokenRepository.findByToken(token)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid refresh token"));
+                .orElseThrow(() -> ApiException.unauthorized("Invalid refresh token"));
 
         if (refreshToken.isRevoked() || refreshToken.getExpiresAt().isBefore(Instant.now())) {
-            throw new IllegalArgumentException("Refresh token expired or revoked. Login again.");
+            throw ApiException.unauthorized("Refresh token is expired or revoked. Login again.");
         }
 
         return refreshToken;
