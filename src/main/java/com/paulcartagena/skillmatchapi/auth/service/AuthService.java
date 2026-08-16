@@ -10,6 +10,7 @@ import com.paulcartagena.skillmatchapi.auth.repository.UserRepository;
 import com.paulcartagena.skillmatchapi.exception.ApiException;
 import com.paulcartagena.skillmatchapi.security.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -54,12 +55,16 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+        } catch (BadCredentialsException ex) {
+            throw ApiException.unauthorized("Invalid credentials");
+        }
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> ApiException.unauthorized("Invalid credentials."));
@@ -78,5 +83,12 @@ public class AuthService {
         String newAcessToken = jwtService.generateAccessToken(user);
 
         return new AuthResponse(newAcessToken, newRefreshToken);
+    }
+
+    public void logout(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> ApiException.unauthorized("User not found"));
+
+        refreshTokenService.revokeAllByUser(user);
     }
 }
