@@ -2,6 +2,9 @@ spring:
   application:
     name: skill-match-api
 
+server:
+  port: ${PORT:8080}
+
 jwt:
   secret: ${JWT_SECRET}
   access-token-expiration-minutes: 15
@@ -29,3 +32,14 @@ spring:
   config:
     activate:
       on-profile: prod
+
+  datasource:
+    url: ${PROD_DB_URL}
+    username: ${PROD_DB_USERNAME}
+    password: ${PROD_DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
