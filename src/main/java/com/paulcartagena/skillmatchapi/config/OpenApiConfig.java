@@ -17,7 +17,12 @@ public class OpenApiConfig {
                 .info(
                         new Info()
                                 .title("Skill Match API")
-                                .description("API for..."))
+                                .description(
+                                        "REST backend for an AI-powered employability platform that matches " +
+                                        "candidates to job openings based on skill compatibility. Built with Java 21, " +
+                                        "Spring Boot, Spring Security, and JWT-based authentication (access + refresh " +
+                                        "tokens). Integrates with a Python/FastAPI microservice for resume parsing " +
+                                        "and semantic skill matching."))
                 .addSecurityItem(
                         new SecurityRequirement()
                                 .addList("Bearer Authentication"))
