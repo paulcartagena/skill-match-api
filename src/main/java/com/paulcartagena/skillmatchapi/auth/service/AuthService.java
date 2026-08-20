@@ -5,12 +5,14 @@ import com.paulcartagena.skillmatchapi.auth.dto.LoginRequest;
 import com.paulcartagena.skillmatchapi.auth.dto.RegisterRequest;
 import com.paulcartagena.skillmatchapi.auth.entity.RefreshToken;
 import com.paulcartagena.skillmatchapi.auth.entity.User;
+import com.paulcartagena.skillmatchapi.auth.enums.AccountStatus;
 import com.paulcartagena.skillmatchapi.auth.enums.UserRole;
 import com.paulcartagena.skillmatchapi.auth.repository.UserRepository;
 import com.paulcartagena.skillmatchapi.exception.ApiException;
 import com.paulcartagena.skillmatchapi.security.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -54,6 +56,20 @@ public class AuthService {
         return new AuthResponse(accessToken, refreshToken);
     }
 
+    public void registerRecruiter(RegisterRequest request) {
+        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw ApiException.conflict("Email already exists.");
+        }
+
+        User user = new User();
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(UserRole.RECRUITER);
+        user.setStatus(AccountStatus.PENDING_VERIFICATION);
+
+        userRepository.save(user);
+    }
+
     public AuthResponse login(LoginRequest request) {
         try {
             authenticationManager.authenticate(
@@ -62,6 +78,8 @@ public class AuthService {
                             request.getPassword()
                     )
             );
+        } catch (DisabledException ex) {
+            throw ApiException.forbidden("Your account is pending approval or has been suspended");
         } catch (BadCredentialsException ex) {
             throw ApiException.unauthorized("Invalid credentials");
         }

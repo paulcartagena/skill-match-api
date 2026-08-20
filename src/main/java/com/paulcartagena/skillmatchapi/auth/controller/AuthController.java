@@ -7,6 +7,7 @@ import com.paulcartagena.skillmatchapi.auth.dto.RegisterRequest;
 import com.paulcartagena.skillmatchapi.auth.service.AuthService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,6 +30,12 @@ public class AuthController {
     @PostMapping("/register")
     public AuthResponse register(@Valid @RequestBody RegisterRequest request) {
         return authService.register(request);
+    }
+
+    @PostMapping("/register-recruiter")
+    public ResponseEntity<Void> registerRecruiter(@Valid @RequestBody RegisterRequest request) {
+        authService.registerRecruiter(request);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PostMapping("/login")

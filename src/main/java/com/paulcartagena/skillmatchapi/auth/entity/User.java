@@ -1,5 +1,6 @@
 package com.paulcartagena.skillmatchapi.auth.entity;
 
+import com.paulcartagena.skillmatchapi.auth.enums.AccountStatus;
 import com.paulcartagena.skillmatchapi.auth.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -27,11 +28,14 @@ public class User implements UserDetails {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long Id;
+    private Long id;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role;
+
+    @Enumerated(EnumType.STRING)
+    private AccountStatus status = AccountStatus.ACTIVE;
 
     @Column(nullable = false, unique = true, length = 120)
     private String email;
@@ -60,5 +64,10 @@ public class User implements UserDetails {
     @Override
     public String getUsername() {
         return email;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return status == AccountStatus.ACTIVE;
     }
 }
