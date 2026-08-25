@@ -21,6 +21,10 @@ import java.time.LocalDateTime;
 @Table(name = "recruiter_profiles")
 public class RecruiterProfile {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
