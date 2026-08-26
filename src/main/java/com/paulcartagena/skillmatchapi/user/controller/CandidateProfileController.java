@@ -4,11 +4,13 @@ import com.paulcartagena.skillmatchapi.auth.entity.User;
 import com.paulcartagena.skillmatchapi.user.dto.CandidateProfileRequest;
 import com.paulcartagena.skillmatchapi.user.dto.CandidateProfileResponse;
 import com.paulcartagena.skillmatchapi.user.service.CandidateProfileService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Tag(name = "Candidate Profile")
 @RequestMapping("/api/candidates")
 public class CandidateProfileController {
 
