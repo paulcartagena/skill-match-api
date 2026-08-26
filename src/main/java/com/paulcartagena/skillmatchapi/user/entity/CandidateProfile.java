@@ -11,6 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Getter
@@ -42,7 +43,7 @@ public class CandidateProfile {
             joinColumns = @JoinColumn(name = "candidate_profile_id"),
             inverseJoinColumns = @JoinColumn(name = "skill_id")
     )
-    private Set<Skill> skills;
+    private Set<Skill> skills = new HashSet<>();
 
     @CreationTimestamp
     @Column(nullable = false, name = "created_at", updatable = false)
