@@ -7,8 +7,10 @@ import com.paulcartagena.skillmatchapi.user.dto.RecruiterProfileResponse;
 import com.paulcartagena.skillmatchapi.user.entity.RecruiterProfile;
 import com.paulcartagena.skillmatchapi.user.repository.RecruiterProfileRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class RecruiterProfileService {
 
     private final RecruiterProfileRepository recruiterProfileRepository;

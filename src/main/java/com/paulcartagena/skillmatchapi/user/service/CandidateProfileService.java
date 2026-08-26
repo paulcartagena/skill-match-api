@@ -10,11 +10,13 @@ import com.paulcartagena.skillmatchapi.user.dto.CandidateProfileResponse;
 import com.paulcartagena.skillmatchapi.user.entity.CandidateProfile;
 import com.paulcartagena.skillmatchapi.user.repository.CandidateProfileRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class CandidateProfileService {
 
     private final CandidateProfileRepository candidateProfileRepository;
