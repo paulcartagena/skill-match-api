@@ -1,10 +1,14 @@
 package com.paulcartagena.skillmatchapi.auth.repository;
 
 import com.paulcartagena.skillmatchapi.auth.entity.User;
+import com.paulcartagena.skillmatchapi.auth.enums.AccountStatus;
+import com.paulcartagena.skillmatchapi.auth.enums.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
+    List<User> findByRoleAndStatus(UserRole role, AccountStatus status);
 }

@@ -6,12 +6,14 @@ import com.paulcartagena.skillmatchapi.user.dto.CandidateProfileResponse;
 import com.paulcartagena.skillmatchapi.user.service.CandidateProfileService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @Tag(name = "Candidate Profile")
 @RequestMapping("/api/candidates")
+@PreAuthorize("hasRole('CANDIDATE')")
 public class CandidateProfileController {
 
     private final CandidateProfileService candidateProfileService;
