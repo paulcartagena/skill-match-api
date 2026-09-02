@@ -93,6 +93,13 @@
             <artifactId>springdoc-openapi-starter-webmvc-scalar</artifactId>
             <version>3.0.0</version>
         </dependency>
+
+        <!--Test-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
