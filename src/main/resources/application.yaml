@@ -10,6 +10,11 @@ jwt:
   access-token-expiration-minutes: 15
   refresh-token-expiration-days: 7
 
+rate-limit:
+  login:
+    capacity: 5
+    refill-minutes: 1
+
 ---
 spring:
   config:
