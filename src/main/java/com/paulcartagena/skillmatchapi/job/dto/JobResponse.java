@@ -6,7 +6,6 @@ import com.paulcartagena.skillmatchapi.job.enums.WorkMode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import java.time.LocalDateTime;
 import java.util.Set;
 
