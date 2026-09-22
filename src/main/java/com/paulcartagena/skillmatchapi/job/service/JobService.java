@@ -5,6 +5,7 @@ import com.paulcartagena.skillmatchapi.exception.ApiException;
 import com.paulcartagena.skillmatchapi.job.dto.JobRequest;
 import com.paulcartagena.skillmatchapi.job.dto.JobResponse;
 import com.paulcartagena.skillmatchapi.job.entity.Job;
+import com.paulcartagena.skillmatchapi.job.enums.JobStatus;
 import com.paulcartagena.skillmatchapi.job.repository.JobRepository;
 import com.paulcartagena.skillmatchapi.skill.entity.Skill;
 import com.paulcartagena.skillmatchapi.skill.repository.SkillRepository;
@@ -51,6 +52,14 @@ public class JobService {
 
         Job saved = jobRepository.save(job);
         return buildResponse(saved);
+    }
+
+    public List<JobResponse> getJobs() {
+        return jobRepository.
+                findByStatus(JobStatus.ACTIVE)
+                .stream()
+                .map(this::buildResponse)
+                .toList();
     }
 
     private Set<Skill> resolveSkills(Set<Long> skillIds) {

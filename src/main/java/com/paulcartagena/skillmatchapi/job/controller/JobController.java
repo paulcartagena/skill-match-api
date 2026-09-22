@@ -10,10 +10,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @Tag(name = "Jobs")
 @RequestMapping("api/jobs")
-@PreAuthorize("hasRole('RECRUITER')")
 public class JobController {
 
     private final JobService jobService;
@@ -23,8 +24,14 @@ public class JobController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('RECRUITER')")
     public JobResponse create(@AuthenticationPrincipal User user,
                               @Valid @RequestBody JobRequest request) {
         return jobService.create(user, request);
+    }
+
+    @GetMapping
+    public List<JobResponse> getJobs() {
+        return jobService.getJobs();
     }
 }
