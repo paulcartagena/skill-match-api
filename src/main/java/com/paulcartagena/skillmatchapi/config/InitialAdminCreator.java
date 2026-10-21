@@ -25,7 +25,7 @@ public class InitialAdminCreator implements ApplicationRunner {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${admin.username:}")
+    @Value("${admin.email:}")
     private String email;
 
     @Value("${admin.password:}")
