@@ -1,5 +1,6 @@
 package com.paulcartagena.skillmatchapi.security;
 
+import com.paulcartagena.skillmatchapi.exception.ErrorResponseWriter;
 import jakarta.servlet.FilterChain;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,6 +9,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.util.ReflectionTestUtils;
+import tools.jackson.databind.json.JsonMapper;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -22,7 +24,7 @@ class RateLimitFilterTest {
 
     @BeforeEach
     void setUp() {
-        rateLimitFilter = new RateLimitFilter();
+        rateLimitFilter = new RateLimitFilter(new ErrorResponseWriter(JsonMapper.builder().build()));
         ReflectionTestUtils.setField(rateLimitFilter, "capacity", CAPACITY);
         ReflectionTestUtils.setField(rateLimitFilter, "refillMinutes", 1);
         filterChain = mock(FilterChain.class);

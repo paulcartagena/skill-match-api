@@ -1,9 +1,7 @@
 package com.paulcartagena.skillmatchapi.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.paulcartagena.skillmatchapi.exception.ErrorResponse;
+import com.paulcartagena.skillmatchapi.exception.ErrorMessages;
+import com.paulcartagena.skillmatchapi.exception.ErrorResponseWriter;
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
 import io.github.bucket4j.ConsumptionProbe;
@@ -14,7 +12,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -39,15 +36,17 @@ public class RateLimitFilter extends OncePerRequestFilter {
     );
 
     private final ConcurrentHashMap<String, Bucket> buckets = new ConcurrentHashMap<>();
-    private final ObjectMapper objectMapper = new ObjectMapper()
-            .registerModule(new JavaTimeModule())
-            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    private final ErrorResponseWriter errorResponseWriter;
 
     @Value("${rate-limit.login.capacity:5}")
     private int capacity;
 
     @Value("${rate-limit.login.refill-minutes:1}")
     private int refillMinutes;
+
+    public RateLimitFilter(ErrorResponseWriter errorResponseWriter) {
+        this.errorResponseWriter = errorResponseWriter;
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -69,13 +68,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         long retryAfterSeconds = Math.max(1, (long) Math.ceil(probe.getNanosToWaitForRefill() / 1_000_000_000.0));
 
-        response.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setHeader("Retry-After", String.valueOf(retryAfterSeconds));
-        ErrorResponse body = new ErrorResponse(
-                HttpStatus.TOO_MANY_REQUESTS.value(),
-                "Too many attempts. Try again later.");
-        response.getWriter().write(objectMapper.writeValueAsString(body));
+        errorResponseWriter.write(response, HttpStatus.TOO_MANY_REQUESTS, ErrorMessages.TOO_MANY_REQUESTS);
     }
 
     private Bucket newBucket() {
