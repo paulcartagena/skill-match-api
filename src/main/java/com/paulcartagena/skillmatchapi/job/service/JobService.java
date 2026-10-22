@@ -62,6 +62,73 @@ public class JobService {
                 .toList();
     }
 
+    public JobResponse getJob(User user, Long id) {
+        Job job = findJob(id);
+
+        // Closed/draft jobs are only visible to their owner; hide them from everyone else
+        if (job.getStatus() != JobStatus.ACTIVE && !isOwner(user, job)) {
+            throw ApiException.notFound("Job not found.");
+        }
+        return buildResponse(job);
+    }
+
+    public List<JobResponse> getMyJobs(User user) {
+        RecruiterProfile recruiter = recruiterProfileRepository.findByUser(user)
+                .orElseThrow(() -> ApiException.notFound("Complete your recruiter profile first."));
+
+        return jobRepository.findByRecruiter(recruiter)
+                .stream()
+                .map(this::buildResponse)
+                .toList();
+    }
+
+    public JobResponse update(User user, Long id, JobRequest request) {
+        Job job = findOwnedJob(user, id);
+
+        if (job.getStatus() == JobStatus.CLOSED) {
+            throw ApiException.badRequest("Closed jobs cannot be edited.");
+        }
+
+        job.setTitle(request.getTitle());
+        job.setDescription(request.getDescription());
+        job.setLocation(request.getLocation());
+        job.setWorkMode(request.getWorkMode());
+        job.setEmploymentType(request.getEmploymentType());
+        job.setRequiredSkills(resolveSkills(request.getRequiredSkillIds()));
+
+        Job saved = jobRepository.save(job);
+        return buildResponse(saved);
+    }
+
+    public JobResponse close(User user, Long id) {
+        Job job = findOwnedJob(user, id);
+
+        if (job.getStatus() == JobStatus.CLOSED) {
+            throw ApiException.badRequest("Job is already closed.");
+        }
+
+        job.setStatus(JobStatus.CLOSED);
+        Job saved = jobRepository.save(job);
+        return buildResponse(saved);
+    }
+
+    private Job findJob(Long id) {
+        return jobRepository.findById(id)
+                .orElseThrow(() -> ApiException.notFound("Job not found."));
+    }
+
+    private Job findOwnedJob(User user, Long id) {
+        Job job = findJob(id);
+        if (!isOwner(user, job)) {
+            throw ApiException.forbidden("You can only modify your own jobs.");
+        }
+        return job;
+    }
+
+    private boolean isOwner(User user, Job job) {
+        return job.getRecruiter().getUser().getId().equals(user.getId());
+    }
+
     private Set<Skill> resolveSkills(Set<Long> skillIds) {
         List<Skill> foundSkills = skillRepository.findAllById(skillIds);
         if (foundSkills.size() != skillIds.size()) {

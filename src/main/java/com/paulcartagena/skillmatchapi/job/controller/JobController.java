@@ -34,4 +34,29 @@ public class JobController {
     public List<JobResponse> getJobs() {
         return jobService.getJobs();
     }
+
+    @GetMapping("/me")
+    @PreAuthorize("hasRole('RECRUITER')")
+    public List<JobResponse> getMyJobs(@AuthenticationPrincipal User user) {
+        return jobService.getMyJobs(user);
+    }
+
+    @GetMapping("/{id}")
+    public JobResponse getJob(@AuthenticationPrincipal User user, @PathVariable Long id) {
+        return jobService.getJob(user, id);
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('RECRUITER')")
+    public JobResponse update(@AuthenticationPrincipal User user,
+                              @PathVariable Long id,
+                              @Valid @RequestBody JobRequest request) {
+        return jobService.update(user, id, request);
+    }
+
+    @PatchMapping("/{id}/close")
+    @PreAuthorize("hasRole('RECRUITER')")
+    public JobResponse close(@AuthenticationPrincipal User user, @PathVariable Long id) {
+        return jobService.close(user, id);
+    }
 }
