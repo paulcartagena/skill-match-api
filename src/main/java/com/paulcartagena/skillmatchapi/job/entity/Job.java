@@ -3,7 +3,6 @@ package com.paulcartagena.skillmatchapi.job.entity;
 import com.paulcartagena.skillmatchapi.job.enums.EmploymentType;
 import com.paulcartagena.skillmatchapi.job.enums.JobStatus;
 import com.paulcartagena.skillmatchapi.job.enums.WorkMode;
-import com.paulcartagena.skillmatchapi.skill.entity.Skill;
 import com.paulcartagena.skillmatchapi.user.entity.RecruiterProfile;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -54,13 +53,8 @@ public class Job {
     @Column(nullable = false)
     private JobStatus status = JobStatus.ACTIVE;
 
-    @ManyToMany
-    @JoinTable(
-            name = "job_skills",
-            joinColumns = @JoinColumn(name = "job_id"),
-            inverseJoinColumns = @JoinColumn(name = "skill_id")
-    )
-    private Set<Skill> requiredSkills = new HashSet<>();
+    @OneToMany(mappedBy = "job", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<JobSkill> skills = new HashSet<>();
 
     @CreationTimestamp
     @Column(nullable = false, name = "created_at", updatable = false)

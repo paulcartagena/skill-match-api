@@ -4,7 +4,9 @@ import com.paulcartagena.skillmatchapi.auth.entity.User;
 import com.paulcartagena.skillmatchapi.exception.ApiException;
 import com.paulcartagena.skillmatchapi.job.dto.JobRequest;
 import com.paulcartagena.skillmatchapi.job.dto.JobResponse;
+import com.paulcartagena.skillmatchapi.job.dto.JobSkillRequest;
 import com.paulcartagena.skillmatchapi.job.entity.Job;
+import com.paulcartagena.skillmatchapi.job.entity.JobSkill;
 import com.paulcartagena.skillmatchapi.job.enums.JobStatus;
 import com.paulcartagena.skillmatchapi.job.repository.JobRepository;
 import com.paulcartagena.skillmatchapi.skill.entity.Skill;
@@ -14,8 +16,9 @@ import com.paulcartagena.skillmatchapi.user.repository.RecruiterProfileRepositor
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -39,8 +42,6 @@ public class JobService {
         RecruiterProfile recruiter = recruiterProfileRepository.findByUser(user)
                 .orElseThrow(() -> ApiException.notFound("Complete your recruiter profile first."));
 
-        Set<Skill> requiredSkills = resolveSkills(request.getRequiredSkillIds());
-
         Job job = new Job();
         job.setRecruiter(recruiter);
         job.setTitle(request.getTitle());
@@ -48,7 +49,7 @@ public class JobService {
         job.setLocation(request.getLocation());
         job.setWorkMode(request.getWorkMode());
         job.setEmploymentType(request.getEmploymentType());
-        job.setRequiredSkills(requiredSkills);
+        applySkills(job, request.getSkills());
 
         Job saved = jobRepository.save(job);
         return buildResponse(saved);
@@ -94,7 +95,7 @@ public class JobService {
         job.setLocation(request.getLocation());
         job.setWorkMode(request.getWorkMode());
         job.setEmploymentType(request.getEmploymentType());
-        job.setRequiredSkills(resolveSkills(request.getRequiredSkillIds()));
+        applySkills(job, request.getSkills());
 
         Job saved = jobRepository.save(job);
         return buildResponse(saved);
@@ -129,18 +130,45 @@ public class JobService {
         return job.getRecruiter().getUser().getId().equals(user.getId());
     }
 
-    private Set<Skill> resolveSkills(Set<Long> skillIds) {
-        List<Skill> foundSkills = skillRepository.findAllById(skillIds);
-        if (foundSkills.size() != skillIds.size()) {
-            throw ApiException.badRequest("One or more required skill IDs do not exist.");
+    private void applySkills(Job job, List<JobSkillRequest> skillRequests) {
+        Map<Long, Boolean> requiredBySkillId = new HashMap<>();
+        for (JobSkillRequest skillRequest : skillRequests) {
+            if (requiredBySkillId.put(skillRequest.getSkillId(), skillRequest.getRequired()) != null) {
+                throw ApiException.badRequest("Each skill can only be listed once.");
+            }
         }
-        return new HashSet<>(foundSkills);
+        if (!requiredBySkillId.containsValue(true)) {
+            throw ApiException.badRequest("At least one required skill is needed.");
+        }
+
+        List<Skill> foundSkills = skillRepository.findAllById(requiredBySkillId.keySet());
+        if (foundSkills.size() != requiredBySkillId.size()) {
+            throw ApiException.badRequest("One or more skill IDs do not exist.");
+        }
+
+        // Update existing rows in place instead of clearing the collection: Hibernate inserts before
+        // it deletes orphans, so re-adding the same skill would hit the (job_id, skill_id) unique constraint
+        job.getSkills().removeIf(jobSkill -> !requiredBySkillId.containsKey(jobSkill.getSkill().getId()));
+        for (Skill skill : foundSkills) {
+            boolean required = requiredBySkillId.get(skill.getId());
+            job.getSkills().stream()
+                    .filter(jobSkill -> jobSkill.getSkill().getId().equals(skill.getId()))
+                    .findFirst()
+                    .ifPresentOrElse(
+                            jobSkill -> jobSkill.setRequired(required),
+                            () -> job.getSkills().add(new JobSkill(null, job, skill, required))
+                    );
+        }
+    }
+
+    private Set<String> skillNames(Job job, boolean required) {
+        return job.getSkills().stream()
+                .filter(jobSkill -> jobSkill.isRequired() == required)
+                .map(jobSkill -> jobSkill.getSkill().getName())
+                .collect(Collectors.toSet());
     }
 
     private JobResponse buildResponse(Job job) {
-        Set<String> skillNames = job.getRequiredSkills().stream()
-                .map(Skill::getName)
-                .collect(Collectors.toSet());
 
         return new JobResponse(
                 job.getId(),
@@ -151,7 +179,8 @@ public class JobService {
                 job.getWorkMode(),
                 job.getEmploymentType(),
                 job.getStatus(),
-                skillNames,
+                skillNames(job, true),
+                skillNames(job, false),
                 job.getCreatedAt()
         );
     }
