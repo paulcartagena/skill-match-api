@@ -2,6 +2,7 @@ package com.paulcartagena.skillmatchapi.job.dto;
 
 import com.paulcartagena.skillmatchapi.job.enums.EmploymentType;
 import com.paulcartagena.skillmatchapi.job.enums.WorkMode;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -9,7 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.Set;
+import java.util.List;
 
 @Getter
 @Setter
@@ -30,6 +31,6 @@ public class JobRequest {
     @NotNull(message = "Type is required.")
     private EmploymentType employmentType;
 
-    @NotEmpty(message = "At least one required skill is needed.")
-    private Set<Long> requiredSkillIds;
+    @NotEmpty(message = "At least one skill is needed.")
+    private List<@Valid JobSkillRequest> skills;
 }

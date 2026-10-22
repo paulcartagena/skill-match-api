@@ -23,5 +23,6 @@ public class JobResponse {
     private EmploymentType employmentType;
     private JobStatus status;
     private Set<String> requiredSkills;
+    private Set<String> desiredSkills;
     private LocalDateTime createdAt;
 }
