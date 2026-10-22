@@ -83,7 +83,7 @@ jobs:
           EC2_USER: ${{ secrets.EC2_USER }}
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
         run: |
-          # Skipped until the server exists and its secrets are configured (see deploy/README.md)
+          # Skipped until the EC2_HOST / EC2_USER / EC2_SSH_KEY repository secrets are configured
           if [ -z "$EC2_HOST" ] || [ -z "$EC2_SSH_KEY" ]; then
             echo "EC2 secrets not configured; skipping deploy."
             exit 0
