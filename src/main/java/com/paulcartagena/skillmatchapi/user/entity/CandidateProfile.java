@@ -1,7 +1,6 @@
 package com.paulcartagena.skillmatchapi.user.entity;
 
 import com.paulcartagena.skillmatchapi.auth.entity.User;
-import com.paulcartagena.skillmatchapi.skill.entity.Skill;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -37,13 +36,8 @@ public class CandidateProfile {
     private Integer yearsOfExperience;
     private String phoneNumber;
 
-    @ManyToMany
-    @JoinTable(
-            name = "candidate_skills",
-            joinColumns = @JoinColumn(name = "candidate_profile_id"),
-            inverseJoinColumns = @JoinColumn(name = "skill_id")
-    )
-    private Set<Skill> skills = new HashSet<>();
+    @OneToMany(mappedBy = "candidate", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<CandidateSkill> skills = new HashSet<>();
 
     @CreationTimestamp
     @Column(nullable = false, name = "created_at", updatable = false)

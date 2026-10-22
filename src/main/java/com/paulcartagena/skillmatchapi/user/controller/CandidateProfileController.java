@@ -3,6 +3,7 @@ package com.paulcartagena.skillmatchapi.user.controller;
 import com.paulcartagena.skillmatchapi.auth.entity.User;
 import com.paulcartagena.skillmatchapi.user.dto.CandidateProfileRequest;
 import com.paulcartagena.skillmatchapi.user.dto.CandidateProfileResponse;
+import com.paulcartagena.skillmatchapi.user.dto.CandidateSkillRequest;
 import com.paulcartagena.skillmatchapi.user.service.CandidateProfileService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -33,10 +34,11 @@ public class CandidateProfileController {
         return candidateProfileService.createOrUpdate(user, request);
     }
 
-    @PostMapping("/me/skills/{skillId}")
-    public CandidateProfileResponse addSkill(@AuthenticationPrincipal User user,
-                                             @PathVariable Long skillId) {
-        return candidateProfileService.addSkill(user, skillId);
+    @PutMapping("/me/skills/{skillId}")
+    public CandidateProfileResponse setSkill(@AuthenticationPrincipal User user,
+                                             @PathVariable Long skillId,
+                                             @Valid @RequestBody CandidateSkillRequest request) {
+        return candidateProfileService.setSkill(user, skillId, request.getLevel());
     }
 
     @DeleteMapping("/me/skills/{skillId}")

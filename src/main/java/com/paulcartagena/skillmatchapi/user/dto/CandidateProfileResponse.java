@@ -1,6 +1,5 @@
 package com.paulcartagena.skillmatchapi.user.dto;
 
-import com.paulcartagena.skillmatchapi.skill.dto.SkillResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -15,5 +14,5 @@ public class CandidateProfileResponse {
     private String location;
     private Integer yearsOfExperience;
     private String phoneNumber;
-    private Set<SkillResponse> skills;
+    private Set<CandidateSkillResponse> skills;
 }
