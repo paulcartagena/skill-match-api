@@ -1,6 +1,7 @@
 package com.paulcartagena.skillmatchapi.application.dto;
 
 import com.paulcartagena.skillmatchapi.application.enums.ApplicationStatus;
+import com.paulcartagena.skillmatchapi.user.dto.CandidateSkillResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,7 +20,7 @@ public class ApplicationResponse {
     private String companyName;
     private Long candidateId;
     private String candidateName;
-    private Set<String> candidateSkills;
+    private Set<CandidateSkillResponse> candidateSkills;
     private ApplicationStatus status;
     private LocalDateTime createdAt;
 }

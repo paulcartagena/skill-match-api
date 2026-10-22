@@ -9,7 +9,7 @@ import com.paulcartagena.skillmatchapi.exception.ApiException;
 import com.paulcartagena.skillmatchapi.job.entity.Job;
 import com.paulcartagena.skillmatchapi.job.enums.JobStatus;
 import com.paulcartagena.skillmatchapi.job.repository.JobRepository;
-import com.paulcartagena.skillmatchapi.skill.entity.Skill;
+import com.paulcartagena.skillmatchapi.user.dto.CandidateSkillResponse;
 import com.paulcartagena.skillmatchapi.user.entity.CandidateProfile;
 import com.paulcartagena.skillmatchapi.user.repository.CandidateProfileRepository;
 import org.springframework.stereotype.Service;
@@ -110,8 +110,8 @@ public class ApplicationService {
         Job job = application.getJob();
         CandidateProfile candidate = application.getCandidate();
 
-        Set<String> candidateSkills = candidate.getSkills().stream()
-                .map(Skill::getName)
+        Set<CandidateSkillResponse> candidateSkills = candidate.getSkills().stream()
+                .map(CandidateSkillResponse::from)
                 .collect(Collectors.toSet());
 
         return new ApplicationResponse(

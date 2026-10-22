@@ -10,7 +10,9 @@ import com.paulcartagena.skillmatchapi.job.entity.Job;
 import com.paulcartagena.skillmatchapi.job.enums.JobStatus;
 import com.paulcartagena.skillmatchapi.job.repository.JobRepository;
 import com.paulcartagena.skillmatchapi.skill.entity.Skill;
+import com.paulcartagena.skillmatchapi.skill.enums.SkillLevel;
 import com.paulcartagena.skillmatchapi.user.entity.CandidateProfile;
+import com.paulcartagena.skillmatchapi.user.entity.CandidateSkill;
 import com.paulcartagena.skillmatchapi.user.entity.RecruiterProfile;
 import com.paulcartagena.skillmatchapi.user.repository.CandidateProfileRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,10 +25,10 @@ import org.springframework.http.HttpStatus;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -65,7 +67,7 @@ class ApplicationServiceTest {
         candidate.setId(10L);
         candidate.setUser(candidateUser);
         candidate.setFullName("Ana Pérez");
-        candidate.setSkills(Set.of(java));
+        candidate.getSkills().add(new CandidateSkill(1L, candidate, java, SkillLevel.ADVANCED));
 
         RecruiterProfile recruiter = new RecruiterProfile();
         recruiter.setUser(recruiterUser);
@@ -92,7 +94,9 @@ class ApplicationServiceTest {
         assertThat(response.getJobTitle()).isEqualTo("Backend Developer");
         assertThat(response.getCompanyName()).isEqualTo("Acme Inc.");
         assertThat(response.getCandidateName()).isEqualTo("Ana Pérez");
-        assertThat(response.getCandidateSkills()).containsExactly("Java");
+        assertThat(response.getCandidateSkills())
+                .extracting("name", "level")
+                .containsExactly(tuple("Java", SkillLevel.ADVANCED));
     }
 
     @Test

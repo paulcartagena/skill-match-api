@@ -4,10 +4,12 @@ import com.paulcartagena.skillmatchapi.auth.entity.User;
 import com.paulcartagena.skillmatchapi.exception.ApiException;
 import com.paulcartagena.skillmatchapi.skill.entity.Skill;
 import com.paulcartagena.skillmatchapi.skill.enums.SkillCategory;
+import com.paulcartagena.skillmatchapi.skill.enums.SkillLevel;
 import com.paulcartagena.skillmatchapi.skill.repository.SkillRepository;
 import com.paulcartagena.skillmatchapi.user.dto.CandidateProfileRequest;
 import com.paulcartagena.skillmatchapi.user.dto.CandidateProfileResponse;
 import com.paulcartagena.skillmatchapi.user.entity.CandidateProfile;
+import com.paulcartagena.skillmatchapi.user.entity.CandidateSkill;
 import com.paulcartagena.skillmatchapi.user.repository.CandidateProfileRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +22,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -88,7 +91,7 @@ class CandidateProfileServiceTest {
     }
 
     @Test
-    void addSkill_addsSkillToProfile() {
+    void setSkill_addsSkillWithLevelToProfile() {
         CandidateProfile profile = new CandidateProfile();
         profile.setUser(user);
         Skill skill = new Skill(1L, "Java", SkillCategory.TECHNICAL);
@@ -98,20 +101,43 @@ class CandidateProfileServiceTest {
         when(candidateProfileRepository.save(any(CandidateProfile.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
-        CandidateProfileResponse response = candidateProfileService.addSkill(user, 1L);
+        CandidateProfileResponse response = candidateProfileService.setSkill(user, 1L, SkillLevel.ADVANCED);
 
-        assertThat(response.getSkills()).extracting("name").containsExactly("Java");
+        assertThat(response.getSkills())
+                .extracting("name", "level")
+                .containsExactly(tuple("Java", SkillLevel.ADVANCED));
+        assertThat(profile.getSkills()).allMatch(candidateSkill -> candidateSkill.getCandidate() == profile);
     }
 
     @Test
-    void addSkill_throwsNotFound_whenSkillDoesNotExist() {
+    void setSkill_updatesLevel_whenCandidateAlreadyHasSkill() {
+        Skill skill = new Skill(1L, "Java", SkillCategory.TECHNICAL);
+        CandidateProfile profile = new CandidateProfile();
+        profile.setUser(user);
+        profile.getSkills().add(new CandidateSkill(7L, profile, skill, SkillLevel.BEGINNER));
+
+        when(candidateProfileRepository.findByUser(user)).thenReturn(Optional.of(profile));
+        when(skillRepository.findById(1L)).thenReturn(Optional.of(skill));
+        when(candidateProfileRepository.save(any(CandidateProfile.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        CandidateProfileResponse response = candidateProfileService.setSkill(user, 1L, SkillLevel.EXPERT);
+
+        assertThat(profile.getSkills()).hasSize(1);
+        assertThat(response.getSkills())
+                .extracting("name", "level")
+                .containsExactly(tuple("Java", SkillLevel.EXPERT));
+    }
+
+    @Test
+    void setSkill_throwsNotFound_whenSkillDoesNotExist() {
         CandidateProfile profile = new CandidateProfile();
         profile.setUser(user);
 
         when(candidateProfileRepository.findByUser(user)).thenReturn(Optional.of(profile));
         when(skillRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThatThrownBy(() -> candidateProfileService.addSkill(user, 99L))
+        assertThatThrownBy(() -> candidateProfileService.setSkill(user, 99L, SkillLevel.BEGINNER))
                 .isInstanceOf(ApiException.class)
                 .extracting(ex -> ((ApiException) ex).getStatus())
                 .isEqualTo(HttpStatus.NOT_FOUND);
@@ -122,7 +148,7 @@ class CandidateProfileServiceTest {
         Skill skill = new Skill(1L, "Java", SkillCategory.TECHNICAL);
         CandidateProfile profile = new CandidateProfile();
         profile.setUser(user);
-        profile.getSkills().add(skill);
+        profile.getSkills().add(new CandidateSkill(7L, profile, skill, SkillLevel.INTERMEDIATE));
 
         when(candidateProfileRepository.findByUser(user)).thenReturn(Optional.of(profile));
         when(skillRepository.findById(1L)).thenReturn(Optional.of(skill));
