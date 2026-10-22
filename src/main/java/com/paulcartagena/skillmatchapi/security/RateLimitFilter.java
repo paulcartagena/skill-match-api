@@ -58,7 +58,10 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return;
         }
 
-        String key = request.getRequestURI() + ":" + clientIp(request);
+        // Behind the load balancer, Tomcat already resolves the real client IP from X-Forwarded-For
+        // (server.forward-headers-strategy: native, trusting only private-network proxies).
+        // Reading the header here instead would let clients bypass the limit by sending a fake one.
+        String key = request.getRequestURI() + ":" + request.getRemoteAddr();
         Bucket bucket = buckets.computeIfAbsent(key, k -> newBucket());
 
         ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
@@ -81,10 +84,5 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private Bucket newBucket() {
         Bandwidth limit = Bandwidth.classic(capacity, Refill.greedy(capacity, Duration.ofMinutes(refillMinutes)));
         return Bucket.builder().addLimit(limit).build();
-    }
-
-    private String clientIp(HttpServletRequest request) {
-        String xff = request.getHeader("X-Forwarded-For");
-        return (xff != null && !xff.isBlank()) ? xff.split(",")[0].trim() : request.getRemoteAddr();
     }
 }
