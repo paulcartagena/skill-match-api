@@ -80,13 +80,13 @@ class RateLimitFilterTest {
     }
 
     @Test
-    void doFilter_usesFirstXForwardedForIp_asClientKey() throws Exception {
-        // Different proxies (remoteAddr) but same originating client -> same bucket
+    void doFilter_ignoresXForwardedForHeader_soClientsCannotSpoofTheirIp() throws Exception {
+        // Same client rotating fake X-Forwarded-For values must still hit the limit
         for (int i = 0; i < CAPACITY; i++) {
-            send("/auth/login", "192.168.1." + i, "203.0.113.7, 10.0.0.1");
+            send("/auth/login", "203.0.113.7", "198.51.100." + i);
         }
 
-        MockHttpServletResponse response = send("/auth/login", "192.168.1.99", "203.0.113.7");
+        MockHttpServletResponse response = send("/auth/login", "203.0.113.7", "198.51.100.99");
 
         assertThat(response.getStatus()).isEqualTo(HttpStatus.TOO_MANY_REQUESTS.value());
     }

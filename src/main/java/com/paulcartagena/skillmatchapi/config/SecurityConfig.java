@@ -47,6 +47,7 @@ public class SecurityConfig {
                                 "/auth/register-recruiter",
                                 "/auth/login",
                                 "/auth/refresh",
+                                "/actuator/health",
                                 "/v3/api-docs/**",
                                 "/scalar/**")
                         .permitAll()
