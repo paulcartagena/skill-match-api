@@ -1,4 +1,4 @@
-package com.paulcartagena.skillmatchapi.user.enums;
+package com.paulcartagena.skillmatchapi.company.enums;
 
 public enum Industry {
     TECHNOLOGY,

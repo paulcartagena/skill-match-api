@@ -1,8 +1,7 @@
 package com.paulcartagena.skillmatchapi.user.entity;
 
 import com.paulcartagena.skillmatchapi.auth.entity.User;
-import com.paulcartagena.skillmatchapi.user.enums.CompanySize;
-import com.paulcartagena.skillmatchapi.user.enums.Industry;
+import com.paulcartagena.skillmatchapi.company.entity.Company;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,18 +28,9 @@ public class RecruiterProfile {
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
-    @Column(nullable = false)
-    private String companyName;
-
-    private String companyWebsite;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Industry industry;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private CompanySize companySize; // STARTUP, SMALL, MEDIUM, LARGE
+    @ManyToOne
+    @JoinColumn(name = "company_id", nullable = false)
+    private Company company;
 
     private String jobTitle;
 

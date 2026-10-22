@@ -2,6 +2,7 @@ package com.paulcartagena.skillmatchapi.auth.service;
 
 import com.paulcartagena.skillmatchapi.auth.dto.AuthResponse;
 import com.paulcartagena.skillmatchapi.auth.dto.LoginRequest;
+import com.paulcartagena.skillmatchapi.auth.dto.RecruiterRegisterRequest;
 import com.paulcartagena.skillmatchapi.auth.dto.RegisterRequest;
 import com.paulcartagena.skillmatchapi.auth.entity.RefreshToken;
 import com.paulcartagena.skillmatchapi.auth.entity.User;
@@ -10,12 +11,14 @@ import com.paulcartagena.skillmatchapi.auth.enums.UserRole;
 import com.paulcartagena.skillmatchapi.auth.repository.UserRepository;
 import com.paulcartagena.skillmatchapi.exception.ApiException;
 import com.paulcartagena.skillmatchapi.security.JwtService;
+import com.paulcartagena.skillmatchapi.user.service.RecruiterProfileService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class AuthService {
@@ -25,17 +28,20 @@ public class AuthService {
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
     private final AuthenticationManager authenticationManager;
+    private final RecruiterProfileService recruiterProfileService;
 
     public AuthService(UserRepository userRepository,
                        PasswordEncoder passwordEncoder,
                        JwtService jwtService,
                        RefreshTokenService refreshTokenService,
-                       AuthenticationManager authenticationManager) {
+                       AuthenticationManager authenticationManager,
+                       RecruiterProfileService recruiterProfileService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.refreshTokenService = refreshTokenService;
         this.authenticationManager = authenticationManager;
+        this.recruiterProfileService = recruiterProfileService;
     }
 
     public AuthResponse register(RegisterRequest request) {
@@ -56,7 +62,8 @@ public class AuthService {
         return new AuthResponse(accessToken, refreshToken);
     }
 
-    public void registerRecruiter(RegisterRequest request) {
+    @Transactional
+    public void registerRecruiter(RecruiterRegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw ApiException.conflict("Email already exists.");
         }
@@ -67,7 +74,9 @@ public class AuthService {
         user.setRole(UserRole.RECRUITER);
         user.setStatus(AccountStatus.PENDING_VERIFICATION);
 
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        recruiterProfileService.createProfile(
+                savedUser, request.getCompanyId(), request.getCompany(), request.getJobTitle());
     }
 
     public AuthResponse login(LoginRequest request) {

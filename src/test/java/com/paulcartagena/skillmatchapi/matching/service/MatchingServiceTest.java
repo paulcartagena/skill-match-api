@@ -1,6 +1,9 @@
 package com.paulcartagena.skillmatchapi.matching.service;
 
 import com.paulcartagena.skillmatchapi.auth.entity.User;
+import com.paulcartagena.skillmatchapi.company.entity.Company;
+import com.paulcartagena.skillmatchapi.company.enums.CompanySize;
+import com.paulcartagena.skillmatchapi.company.enums.Industry;
 import com.paulcartagena.skillmatchapi.exception.ApiException;
 import com.paulcartagena.skillmatchapi.job.entity.Job;
 import com.paulcartagena.skillmatchapi.job.enums.JobStatus;
@@ -53,7 +56,7 @@ class MatchingServiceTest {
 
         recruiter = new RecruiterProfile();
         recruiter.setUser(recruiterUser);
-        recruiter.setCompanyName("Acme Inc.");
+        recruiter.setCompany(new Company(1L, "Acme Inc.", null, Industry.TECHNOLOGY, CompanySize.SMALL, null, null));
     }
 
     @Test

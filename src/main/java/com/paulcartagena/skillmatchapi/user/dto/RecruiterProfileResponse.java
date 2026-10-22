@@ -1,7 +1,6 @@
 package com.paulcartagena.skillmatchapi.user.dto;
 
-import com.paulcartagena.skillmatchapi.user.enums.CompanySize;
-import com.paulcartagena.skillmatchapi.user.enums.Industry;
+import com.paulcartagena.skillmatchapi.company.dto.CompanyResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -10,9 +9,6 @@ import lombok.Getter;
 public class RecruiterProfileResponse {
 
     private Long id;
-    private String companyName;
-    private String companyWebsite;
-    private Industry industry;
-    private CompanySize companySize;
     private String jobTitle;
+    private CompanyResponse company;
 }

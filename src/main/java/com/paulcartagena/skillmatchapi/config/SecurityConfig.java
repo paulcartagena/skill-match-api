@@ -5,6 +5,7 @@ import com.paulcartagena.skillmatchapi.security.JwtAuthenticationEntryPoint;
 import com.paulcartagena.skillmatchapi.security.JwtFilter;
 import com.paulcartagena.skillmatchapi.security.RateLimitFilter;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpMethod;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -48,6 +49,8 @@ public class SecurityConfig {
                                 "/auth/refresh",
                                 "/v3/api-docs/**",
                                 "/scalar/**")
+                        .permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/companies", "/api/companies/*")
                         .permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex

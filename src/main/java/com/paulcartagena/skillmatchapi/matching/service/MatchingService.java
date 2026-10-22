@@ -64,7 +64,7 @@ public class MatchingService {
         return new JobMatchResponse(
                 job.getId(),
                 job.getTitle(),
-                job.getRecruiter().getCompanyName(),
+                job.getRecruiter().getCompany().getName(),
                 result.score(),
                 toSkillResponses(result),
                 result.missingRequiredSkills()

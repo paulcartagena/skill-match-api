@@ -172,7 +172,7 @@ public class JobService {
 
         return new JobResponse(
                 job.getId(),
-                job.getRecruiter().getCompanyName(),
+                job.getRecruiter().getCompany().getName(),
                 job.getTitle(),
                 job.getDescription(),
                 job.getLocation(),
