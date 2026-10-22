@@ -4,8 +4,13 @@ import com.paulcartagena.skillmatchapi.auth.entity.User;
 import com.paulcartagena.skillmatchapi.auth.enums.AccountStatus;
 import com.paulcartagena.skillmatchapi.auth.enums.UserRole;
 import com.paulcartagena.skillmatchapi.auth.repository.UserRepository;
+import com.paulcartagena.skillmatchapi.company.entity.Company;
+import com.paulcartagena.skillmatchapi.company.enums.CompanySize;
+import com.paulcartagena.skillmatchapi.company.enums.Industry;
 import com.paulcartagena.skillmatchapi.exception.ApiException;
 import com.paulcartagena.skillmatchapi.user.dto.PendingRecruiterResponse;
+import com.paulcartagena.skillmatchapi.user.entity.RecruiterProfile;
+import com.paulcartagena.skillmatchapi.user.repository.RecruiterProfileRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,9 +31,33 @@ class AdminRecruiterServiceTest {
 
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private RecruiterProfileRepository recruiterProfileRepository;
 
     @InjectMocks
     private AdminRecruiterService adminRecruiterService;
+
+    @Test
+    void getPendingRecruiters_includesTheCompanyTheRecruiterRegisteredWith() {
+        User pending = new User();
+        pending.setId(1L);
+        pending.setEmail("recruiter@company.com");
+
+        RecruiterProfile profile = new RecruiterProfile();
+        profile.setUser(pending);
+        profile.setJobTitle("Tech Lead");
+        profile.setCompany(new Company(7L, "Acme Inc.", null, Industry.TECHNOLOGY, CompanySize.SMALL, null, null));
+
+        when(userRepository.findByRoleAndStatus(UserRole.RECRUITER, AccountStatus.PENDING_VERIFICATION))
+                .thenReturn(List.of(pending));
+        when(recruiterProfileRepository.findByUser(pending)).thenReturn(Optional.of(profile));
+
+        PendingRecruiterResponse result = adminRecruiterService.getPendingRecruiters().getFirst();
+
+        assertThat(result.getJobTitle()).isEqualTo("Tech Lead");
+        assertThat(result.getCompany().getId()).isEqualTo(7L);
+        assertThat(result.getCompany().getName()).isEqualTo("Acme Inc.");
+    }
 
     @Test
     void getPendingRecruiters_mapsUsersToResponses() {

@@ -2,6 +2,7 @@ package com.paulcartagena.skillmatchapi.auth.service;
 
 import com.paulcartagena.skillmatchapi.auth.dto.AuthResponse;
 import com.paulcartagena.skillmatchapi.auth.dto.LoginRequest;
+import com.paulcartagena.skillmatchapi.auth.dto.RecruiterRegisterRequest;
 import com.paulcartagena.skillmatchapi.auth.dto.RegisterRequest;
 import com.paulcartagena.skillmatchapi.auth.entity.RefreshToken;
 import com.paulcartagena.skillmatchapi.auth.entity.User;
@@ -10,6 +11,7 @@ import com.paulcartagena.skillmatchapi.auth.enums.UserRole;
 import com.paulcartagena.skillmatchapi.auth.repository.UserRepository;
 import com.paulcartagena.skillmatchapi.exception.ApiException;
 import com.paulcartagena.skillmatchapi.security.JwtService;
+import com.paulcartagena.skillmatchapi.user.service.RecruiterProfileService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -42,6 +44,8 @@ class AuthServiceTest {
     private RefreshTokenService refreshTokenService;
     @Mock
     private AuthenticationManager authenticationManager;
+    @Mock
+    private RecruiterProfileService recruiterProfileService;
 
     @InjectMocks
     private AuthService authService;
@@ -82,22 +86,27 @@ class AuthServiceTest {
     }
 
     @Test
-    void registerRecruiter_savesUserAsPendingRecruiter() {
-        RegisterRequest request = new RegisterRequest("recruiter@company.com", "Recruiter", "password1");
+    void registerRecruiter_savesUserAsPendingRecruiter_andCreatesProfileWithCompany() {
+        RecruiterRegisterRequest request = new RecruiterRegisterRequest(
+                "recruiter@company.com", "Recruiter", "password1", "Tech Lead", 7L, null);
+        User saved = new User();
 
         when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.empty());
         when(passwordEncoder.encode(request.getPassword())).thenReturn("encoded-password");
+        when(userRepository.save(any(User.class))).thenReturn(saved);
 
         authService.registerRecruiter(request);
 
         verify(userRepository).save(argThat(user ->
                 user.getRole() == UserRole.RECRUITER
                         && user.getStatus() == AccountStatus.PENDING_VERIFICATION));
+        verify(recruiterProfileService).createProfile(saved, 7L, null, "Tech Lead");
     }
 
     @Test
     void registerRecruiter_throwsConflict_whenEmailAlreadyExists() {
-        RegisterRequest request = new RegisterRequest("existing@company.com", "Name", "password1");
+        RecruiterRegisterRequest request = new RecruiterRegisterRequest(
+                "existing@company.com", "Name", "password1", null, 7L, null);
         when(userRepository.findByEmail(request.getEmail())).thenReturn(Optional.of(new User()));
 
         assertThatThrownBy(() -> authService.registerRecruiter(request))
@@ -106,6 +115,7 @@ class AuthServiceTest {
                 .isEqualTo(HttpStatus.CONFLICT);
 
         verify(userRepository, never()).save(any());
+        verifyNoInteractions(recruiterProfileService);
     }
 
     @Test

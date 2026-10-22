@@ -118,7 +118,7 @@ public class ApplicationService {
                 application.getId(),
                 job.getId(),
                 job.getTitle(),
-                job.getRecruiter().getCompanyName(),
+                job.getRecruiter().getCompany().getName(),
                 candidate.getId(),
                 candidate.getFullName(),
                 candidateSkills,

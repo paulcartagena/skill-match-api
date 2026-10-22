@@ -30,6 +30,6 @@ public class RecruiterProfileController {
     @PutMapping("/me")
     public RecruiterProfileResponse updateMyProfile(@AuthenticationPrincipal User user,
                                                     @Valid @RequestBody RecruiterProfileRequest request) {
-        return recruiterProfileService.createOrUpdate(user, request);
+        return recruiterProfileService.update(user, request);
     }
 }
